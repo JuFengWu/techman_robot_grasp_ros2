@@ -39,7 +39,7 @@ rclcpp::Clock::SharedPtr set_time(rclcpp::Node::SharedPtr node){
   return clock;
 }
 
-void set_model(std::string modle_name, sensor_msgs::msg::JointState msg){
+void set_model(std::string modle_name, sensor_msgs::msg::JointState& msg){
   ModelInterface* modle = get_modle(modle_name);
 
   modle->set_model_name(msg);
@@ -67,9 +67,13 @@ int main(int argc, char * argv[]){
 
     rclcpp::WallRate loop_rate(command->get_loop_time());
     while (rclcpp::ok()) {
+     
       command->run_command(msg,clock);
+      
       joint_state_pub->publish(msg);
+      
       rclcpp::spin_some(node);
+      
       loop_rate.sleep();
     }
   }

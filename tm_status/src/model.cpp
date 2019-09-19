@@ -1,9 +1,10 @@
 #include "../include/model.h"
-
+#include <iostream>
 void ModelInterface::set_model_initial_pose(sensor_msgs::msg::JointState& msg,double allInitialPose =0){
   for(unsigned int i=0;i<msg.name.size();i++){
       msg.position.push_back(allInitialPose);
   }
+  std::cout<<"msg.name.size() is"<<msg.name.size()<<std::endl;
 }
 
 void TmGraspModel::set_model_name(sensor_msgs::msg::JointState& msg){

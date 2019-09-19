@@ -17,9 +17,8 @@ void TestMoveCommand::run_command(sensor_msgs::msg::JointState& msg,rclcpp::Cloc
     counter += 0.005;
     double joint_value = std::sin(counter);
     for (size_t i = 0; i < 6; ++i) {
-      
       msg.position[i] = joint_value;
     }
     msg.header.stamp = clock->now();
-    
+
 }
