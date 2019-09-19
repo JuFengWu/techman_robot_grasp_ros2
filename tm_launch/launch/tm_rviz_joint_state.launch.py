@@ -6,12 +6,10 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # TODO(wjwwood): Use a substitution to find share directory once this is implemented in launch
-    #urdf = os.path.join(get_package_share_directory('dummy_robot_bringup'),
-    #                    'launch', 'single_rrbot.urdf')
+
     urdfName = 'robot_hand'
     urdf = os.path.join(get_package_share_directory('tm_grasp_description'), 'urdf/', urdfName + '.urdf')
-    rvizPath = os.path.join(get_package_share_directory('tm_grasp_description'), 'rviz/', urdfName + '.urdf')
+    rvizPath = os.path.join(get_package_share_directory('tm_grasp_description'), 'rviz/', urdfName + '.rviz')
     rviz_config_dir = os.path.join(
            urdf,
             'rviz',
@@ -24,5 +22,5 @@ def generate_launch_description():
             output='screen'),
         Node(package='robot_state_publisher', node_executable='robot_state_publisher',
              output='screen', arguments=[urdf]),
-        Node(package='tm_joint_state', node_executable='tm_joint_move', output='screen')
+        Node(package='tm_status', node_executable='send_joint_command', output='screen')
     ])
