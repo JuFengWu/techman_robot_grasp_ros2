@@ -1,0 +1,20 @@
+leowu@leowu-System-Product-Name:~$ ros2 node list 
+X/launch_ros        
+X/robot_state_publisher
+X/hros_cognition_leowu_System_Product_Name
+X/gazebo
+/joint_state
+/hrim_actuator_rotaryservo_000000000001
+/hrim_actuator_rotaryservo_000000000002
+/hrim_actuator_rotaryservo_000000000003
+
+
+
+leowu@leowu-System-Product-Name:~$ ros2 node list 
+X/launch_ros          
+X/robot_state_publisher
+X/gazebo
+O 兩次/launch_ros
+O兩次/robot_state_publisher
+X/hros_cognition_leowu_System_Product_Name
+
