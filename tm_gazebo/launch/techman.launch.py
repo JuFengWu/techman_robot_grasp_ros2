@@ -18,7 +18,8 @@ def add_gazebo_path(install_dir_path):
         os.environ['GAZEBO_PLUGIN_PATH'] = install_dir_path + '/lib'
 
 def generate_launch_description():
-    urdfName = 'robot_hand'
+    #urdfName = 'robot_hand'
+    urdfName = 'robot_hand_gazebo_plugin'
     urdf = os.path.join(get_package_share_directory('tm_grasp_description'), 'urdf/', urdfName + '.urdf')
     print("urdf is ")
     print(urdf)
@@ -26,8 +27,10 @@ def generate_launch_description():
 
     tm_grasp_description_install_dir = get_package_prefix('tm_grasp_description')
     gripper_install_dir = get_package_prefix('robotiq_2f_140_gripper_visualization')
+    install_dir = get_package_prefix('tm_gazebo_plugin')
     add_gazebo_path(tm_grasp_description_install_dir)
     add_gazebo_path(gripper_install_dir)
+    add_gazebo_path(install_dir)
     
 
     envs = {}

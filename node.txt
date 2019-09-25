@@ -1,3 +1,10 @@
 1. create package: ros2 pkg create --dependencies [deps]
 2. ros2 node list -> show up the nodes
 3. ros2 run rqt_gui rqt_gui -> show those node interaction
+4. ros2 pkg executables -> show up all execuable and it's nodes 
+5. ros2 pkg list -> show up all packages
+6. ros2 service list -> show up all service
+7. ros2 topic list -> show up all topic
+
+8. topic-> many to many, one node can subscribe many topic ex: robot status
+   service-> check a node status or math calculate
