@@ -10,6 +10,6 @@ you can see techman robot move in rviz
 #### launch and show it up in Gazebo
 You can launch Gazebo and show the robot and griiper just type
 ```
-ros2 launch tm_gazebo techman.launch.py
+ros2 launch tm_launch tm_gazebo_move.launch.py
 ```
 you can see techman robot move in rviz
