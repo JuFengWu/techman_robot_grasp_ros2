@@ -1,0 +1,6 @@
+trajectory_msgs/JointTrajectory joint_trajectory # Request
+---
+int32 error_code          # Result
+int32 is_success
+---
+float64 process_persent  # Feedback
