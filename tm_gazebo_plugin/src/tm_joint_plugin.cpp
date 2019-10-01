@@ -1,9 +1,13 @@
 #include"../include/tm_gazebo_plugin/tm_joint_plugin.hpp"
+
 #include <cmath>
 
 namespace gazebo_plugins
 {
-void TMGazeboPluginRos::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr /*_sdf*/){
+void TMGazeboPluginRos::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr _sdf){
+
+    robot_simulator = new TmRobotSimulator();//TODO: unique pointer??
+    this->robot_simulator->rosNode = gazebo_ros::Node::Get(_sdf);
     this->robot_simulator->model = model;
     
     this->robot_simulator->set_model_joint();

@@ -22,17 +22,24 @@ find_package(gazebo_dev REQUIRED)
 find_package(gazebo_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(tm_msgs)
+
 
 include_directories(include
   ${gazebo_dev_INCLUDE_DIRS}
   ${gazebo_ros_INCLUDE_DIRS}
+  ${tm_msgs_INCLUDE_DIRS}
 )
 
-link_directories(${gazebo_dev_LIBRARY_DIRS})
+link_directories(
+  ${gazebo_dev_LIBRARY_DIRS}
+  
+)
 
 # tm_gazebo_joint_plugin
 add_library(tm_gazebo_joint_plugin SHARED
   src/tm_joint_plugin.cpp
+  src/robot_simulator.cpp
 )
 ament_target_dependencies(tm_gazebo_joint_plugin
   "gazebo_dev"
@@ -40,6 +47,8 @@ ament_target_dependencies(tm_gazebo_joint_plugin
   "rclcpp"
   "rclcpp_action"
   "ament_index_cpp"
+  "tm_msgs"
+
 )
 ament_export_libraries(tm_gazebo_joint_plugin)
 

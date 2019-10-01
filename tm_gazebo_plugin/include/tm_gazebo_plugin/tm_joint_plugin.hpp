@@ -1,15 +1,6 @@
-#include <gazebo/common/Plugin.hh>
-#include <gazebo/common/Time.hh>
-#include <gazebo/physics/Joint.hh>
-#include <gazebo/physics/Link.hh>
-#include <gazebo/physics/Model.hh>
-#include <gazebo/physics/World.hh>
-#include <iostream>
 
-// #include <gazebo_ros/conversions/builtin_interfaces.hpp>
-#include <gazebo_ros/conversions/geometry_msgs.hpp>
-#include <gazebo_ros/node.hpp>
 
+#include"../include/tm_gazebo_plugin/robot_simulator.hpp"
 namespace gazebo_plugins
 {
   class TMGazeboPluginRos : public gazebo::ModelPlugin
@@ -35,5 +26,6 @@ namespace gazebo_plugins
     gazebo::event::ConnectionPtr updateConnection;
     float counter;
     std::vector<gazebo::physics::JointPtr> _joints;
+    RobotSimulatorInterface *robot_simulator;
   };
 }
