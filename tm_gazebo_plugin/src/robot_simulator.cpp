@@ -167,4 +167,27 @@ namespace gazebo_plugins
       gazeboJoint[i]->SetPosition(0, initial_joints_value, false);
     }
   }
+
+  void TMGazeboPluginRos::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr _sdf){
+
+        robot_simulator = new TmRobotSimulator();//TODO: unique pointer??
+        this->robot_simulator->rosNode = gazebo_ros::Node::Get(_sdf);
+        this->robot_simulator->model = model;
+        
+        this->robot_simulator->set_model_joint();
+        this->robot_simulator->create_topic();
+        this->robot_simulator->create_command_action();
+
+        this->updateConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
+            std::bind(&TMGazeboPluginRos::OnUpdate, this));
+    }
+
+    void TMGazeboPluginRos::OnUpdate(){
+        this->robot_simulator->set_command_to_gazebo();
+    }
+
+    void TMGazeboPluginRos::Reset(){
+        this->robot_simulator->initial_modle_pose();
+    }
+    GZ_REGISTER_MODEL_PLUGIN(TMGazeboPluginRos)
 }

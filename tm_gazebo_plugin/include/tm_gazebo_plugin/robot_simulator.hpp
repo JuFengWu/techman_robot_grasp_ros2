@@ -35,6 +35,7 @@ namespace gazebo_plugins
       virtual void create_topic();
       virtual void create_command_action();
       virtual void set_command_to_gazebo();
+      virtual void initial_modle_pose();
     protected:
       std::vector<gazebo::physics::JointPtr> gazeboJoint;
       float initial_joints_value;
@@ -48,8 +49,9 @@ namespace gazebo_plugins
       void message_publish();
       std::vector<std::vector<double>> tajectoryVelocity;
       std::vector<std::vector<double>> tajectoryPosition;
-      void initial_modle_pose();
+      
     public:
+      void initial_modle_pose() override;
       void set_model_joint() override;
       void create_topic() override;
       void create_command_action() override;
@@ -62,6 +64,31 @@ namespace gazebo_plugins
       int joint_control_mode;
       bool pointExecute;
     
+  };
+
+  class TMGazeboPluginRos : public gazebo::ModelPlugin
+  {
+  public:
+    /// Constructor
+    //TMGazeboPluginRos();
+
+    /// Destructor
+    //~TMGazeboPluginRos();
+
+    void OnUpdate();
+
+  protected:
+    // Documentation inherited
+    void Load(gazebo::physics::ModelPtr model, sdf::ElementPtr _sdf) override;
+
+    // Documentation inherited
+    void Reset() override;
+  private: 
+    gazebo::physics::ModelPtr _model;
+    // Pointer to the update event connection
+    gazebo::event::ConnectionPtr updateConnection;
+    std::vector<gazebo::physics::JointPtr> _joints;
+    RobotSimulatorInterface *robot_simulator;
   };
 }
 #endif
