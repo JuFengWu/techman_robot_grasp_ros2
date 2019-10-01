@@ -39,7 +39,7 @@ void TMGazeboPluginRos::OnUpdate(){
     //_joints[5]->SetPosition(0, joint_value, false);
 
     this->robot_simulator->set_command_to_gazebo();
-    this->robot_simulator->get_current_state_to_publish();
+    
 }
 
 void TMGazeboPluginRos::Reset(){

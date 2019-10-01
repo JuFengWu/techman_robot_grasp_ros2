@@ -1,5 +1,6 @@
 trajectory_msgs/JointTrajectory joint_trajectory # Request
 int32 robot_id
+int32 joint_control_mode
 ---
 int32 error_code          # Result
 int32 is_success
