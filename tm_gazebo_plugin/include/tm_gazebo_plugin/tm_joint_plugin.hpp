@@ -22,40 +22,34 @@
 using namespace std::chrono_literals;
 namespace gazebo_plugins
 {
-  class RobotSimulatorInterface{
+  
+
+  class TMGazeboPluginRosPrivate {
+    private:
+      const unsigned int jointNumber=6;
+      void message_publish();
+      std::vector<std::vector<double>> tajectoryVelocity;
+      std::vector<std::vector<double>> tajectoryPosition;
+
+      std::vector<gazebo::physics::JointPtr> gazeboJoint;
+      float initial_joints_value;
+      
+      std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::RobotStatus> > motorStatusPublish;
+      
     public:
-      /// Pointer to model.
+      TMGazeboPluginRosPrivate();
       gazebo::physics::ModelPtr model;//TODO: change to set, get
       gazebo_ros::Node::SharedPtr rosNode;
 
       const int jointPositionControl =0;
       const int jointVelocityControl =1;
       int controlMode = 0;
-      virtual void set_model_joint();
-      virtual void create_topic();
-      virtual void create_command_action();
-      virtual void set_command_to_gazebo();
-      virtual void initial_modle_pose();
-    protected:
-      std::vector<gazebo::physics::JointPtr> gazeboJoint;
-      float initial_joints_value;
-      
-      std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::RobotStatus> > motorStatusPublish;
-  };
 
-  class TmRobotSimulator : public RobotSimulatorInterface{
-    private:
-      unsigned int jointNumber=6;
-      void message_publish();
-      std::vector<std::vector<double>> tajectoryVelocity;
-      std::vector<std::vector<double>> tajectoryPosition;
-      
-    public:
-      void initial_modle_pose() override;
-      void set_model_joint() override;
-      void create_topic() override;
-      void create_command_action() override;
-      void set_command_to_gazebo() override;
+      void initial_modle_pose() ;
+      void set_model_joint() ;
+      void create_topic() ;
+      void create_command_action() ;
+      void set_command_to_gazebo() ;
       rclcpp_action::GoalResponse handle_tm_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const tm_msgs::action::JointTrajectory::Goal> goal);
       rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
       void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
@@ -70,10 +64,10 @@ namespace gazebo_plugins
   {
   public:
     /// Constructor
-    //TMGazeboPluginRos();
+    TMGazeboPluginRos();
 
     /// Destructor
-    //~TMGazeboPluginRos();
+    ~TMGazeboPluginRos();
 
     void OnUpdate();
 
@@ -88,7 +82,7 @@ namespace gazebo_plugins
     // Pointer to the update event connection
     gazebo::event::ConnectionPtr updateConnection;
     std::vector<gazebo::physics::JointPtr> _joints;
-    RobotSimulatorInterface *robot_simulator;
+    std::unique_ptr<TMGazeboPluginRosPrivate> robot_simulator;
   };
 }
 #endif

@@ -38,7 +38,7 @@ link_directories(
 
 # tm_gazebo_joint_plugin
 add_library(tm_gazebo_joint_plugin SHARED
-  src/robot_simulator.cpp
+  src/tm_joint_plugin.cpp
 )
 ament_target_dependencies(tm_gazebo_joint_plugin
   "gazebo_dev"

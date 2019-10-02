@@ -1,7 +1,12 @@
-#include"../include/tm_gazebo_plugin/robot_simulator.hpp"
+#include"../include/tm_gazebo_plugin/tm_joint_plugin.hpp"
 namespace gazebo_plugins
 {
-  void TmRobotSimulator::set_model_joint(){
+
+  TMGazeboPluginRosPrivate::TMGazeboPluginRosPrivate(){
+    tajectoryPosition.resize(jointNumber);
+    tajectoryVelocity.resize(jointNumber);
+  }
+  void TMGazeboPluginRosPrivate::set_model_joint(){
     
     this->gazeboJoint.resize(this->jointNumber);
     this->gazeboJoint[0] = this->model->GetJoint("shoulder_1_joint");
@@ -15,7 +20,7 @@ namespace gazebo_plugins
     this->initial_modle_pose();
 
   }
-  void TmRobotSimulator::message_publish(){
+  void TMGazeboPluginRosPrivate::message_publish(){
     tm_msgs::msg::RobotStatus motor_status_msg;
 
     for(unsigned int i=0;i<this->jointNumber;i++){
@@ -26,16 +31,16 @@ namespace gazebo_plugins
 
     motorStatusPublish->publish(motor_status_msg);
   }
-  void TmRobotSimulator::create_topic(){
+  void TMGazeboPluginRosPrivate::create_topic(){
     
 
     motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_state",rclcpp::SensorDataQoS());
     
-    rosNode->create_wall_timer(50ms,std::bind(&TmRobotSimulator::message_publish, this));
+    rosNode->create_wall_timer(50ms,std::bind(&TMGazeboPluginRosPrivate::message_publish, this));
   }
 
 
-  void TmRobotSimulator::execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
+  void TMGazeboPluginRosPrivate::execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
     const auto goal = goalHandle->get_goal();
     
     std::vector<int> tajectorySize;
@@ -97,7 +102,7 @@ namespace gazebo_plugins
     std::cout<<"success!"<<std::endl;
     
   }
-  rclcpp_action::GoalResponse TmRobotSimulator::handle_tm_action_goal
+  rclcpp_action::GoalResponse TMGazeboPluginRosPrivate::handle_tm_action_goal
     (const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const tm_msgs::action::JointTrajectory::Goal> goal){
     RCLCPP_INFO(rclcpp::get_logger("server"), "Got goal request");// TODO: rclcpp::get_logger("server") may have problem
     (void)uuid;
@@ -108,36 +113,38 @@ namespace gazebo_plugins
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 
   }
-  rclcpp_action::CancelResponse TmRobotSimulator::handle_cancel
+  rclcpp_action::CancelResponse TMGazeboPluginRosPrivate::handle_cancel
     (const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
     std::cout<<"Got request to cancel goal"<<std::endl;
     (void)goalHandle;
     return rclcpp_action::CancelResponse::ACCEPT;
   }
-  void TmRobotSimulator::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
+  void TMGazeboPluginRosPrivate::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
     std::cout<<"Accept action!"<<std::endl;
-    std::thread(&TmRobotSimulator::execute_joint_move, this, goalHandle).detach();
+    std::thread(&TMGazeboPluginRosPrivate::execute_joint_move, this, goalHandle).detach();
   }
-  void TmRobotSimulator::create_command_action(){
+  void TMGazeboPluginRosPrivate::create_command_action(){
     auto action_server = rclcpp_action::create_server<tm_msgs::action::JointTrajectory>(
       rosNode,
       "techman_action_server",
-      std::bind(&TmRobotSimulator::handle_tm_action_goal,this, std::placeholders::_1, std::placeholders::_2),
-      std::bind(&TmRobotSimulator::handle_cancel,this,std::placeholders::_1),
-      std::bind(&TmRobotSimulator::handle_accepted,this,std::placeholders::_1));
+      std::bind(&TMGazeboPluginRosPrivate::handle_tm_action_goal,this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&TMGazeboPluginRosPrivate::handle_cancel,this,std::placeholders::_1),
+      std::bind(&TMGazeboPluginRosPrivate::handle_accepted,this,std::placeholders::_1));
   }
-  void TmRobotSimulator::set_command_to_gazebo(){
+  void TMGazeboPluginRosPrivate::set_command_to_gazebo(){
     bool isMove = false;
     if(this->jointPositionControl == joint_control_mode){
-      for(unsigned int i=0 ; i < this->jointNumber; i++){
-        if(tajectoryPosition[i].empty()){
+      
+      for(unsigned int i=0 ; i < this->jointNumber; i++){    
+        if(tajectoryPosition[i].empty()){  
           jointValue[i] = gazeboJoint[i]->Position(i);
         }
         else{
           jointValue[i] = tajectoryPosition[i].back();
-          tajectoryPosition[i].pop_back();
+          tajectoryPosition[i].pop_back(); 
           isMove = true;
         }
+
         gazeboJoint[i]->SetPosition(0, jointValue[i], false);// TODO: check update time
             
       }
@@ -161,25 +168,42 @@ namespace gazebo_plugins
     }
   }
 
-  void TmRobotSimulator::initial_modle_pose(){
+  void TMGazeboPluginRosPrivate::initial_modle_pose(){
     for(unsigned i = 0; i < this->jointNumber; i++)
     {
       gazeboJoint[i]->SetPosition(0, initial_joints_value, false);
     }
   }
 
+  TMGazeboPluginRos::TMGazeboPluginRos()
+  : robot_simulator(std::make_unique<TMGazeboPluginRosPrivate>())
+  {
+  }
+
+  TMGazeboPluginRos::~TMGazeboPluginRos()
+  {
+  }
+
   void TMGazeboPluginRos::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr _sdf){
 
-        robot_simulator = new TmRobotSimulator();//TODO: unique pointer??
-        this->robot_simulator->rosNode = gazebo_ros::Node::Get(_sdf);
+        
+        this->robot_simulator = std::make_unique<TMGazeboPluginRosPrivate>();
+        
         this->robot_simulator->model = model;
+        this->robot_simulator->rosNode = gazebo_ros::Node::Get(_sdf);
+        
+        
         
         this->robot_simulator->set_model_joint();
+        
         this->robot_simulator->create_topic();
+        
         this->robot_simulator->create_command_action();
+        
 
         this->updateConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
             std::bind(&TMGazeboPluginRos::OnUpdate, this));
+        std::cout<<"end initial"<<std::endl;
     }
 
     void TMGazeboPluginRos::OnUpdate(){
