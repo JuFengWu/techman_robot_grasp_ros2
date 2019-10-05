@@ -33,8 +33,9 @@ namespace gazebo_plugins
 
       std::vector<gazebo::physics::JointPtr> gazeboJoint;
       float initial_joints_value;
-      
+      float counter;
       std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::RobotStatus> > motorStatusPublish;
+      std::shared_ptr<rclcpp::TimerBase> motorStatusPublishTimer;
       
     public:
       TMGazeboPluginRosPrivate();
@@ -50,6 +51,7 @@ namespace gazebo_plugins
       void create_topic() ;
       void create_command_action() ;
       void set_command_to_gazebo() ;
+      void set_command_to_gazebo_test();
       rclcpp_action::GoalResponse handle_tm_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const tm_msgs::action::JointTrajectory::Goal> goal);
       rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
       void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);

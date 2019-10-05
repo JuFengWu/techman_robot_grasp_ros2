@@ -11,10 +11,10 @@ namespace tm_driver{
     goalMsg = JointTrajectory::Goal();
   }
 
-  void SendCommand::feedback_callback(rclcpp_action::ClientGoalHandle<JointTrajectory>::SharedPtr,
+  void feedback_callback(SendCommand *sendCommand, rclcpp_action::ClientGoalHandle<JointTrajectory>::SharedPtr,
                     const std::shared_ptr<const JointTrajectory::Feedback> feedback){
-    this->processPersent = feedback->process_persent;
-    std::cout<<"process persent is "<<this->processPersent<<std::endl;
+    sendCommand->processPersent = feedback->process_persent;
+    std::cout<<"process persent is "<<sendCommand->processPersent<<std::endl;
   }
   int SendCommand::check_result_correct(rclcpp_action::ClientGoalHandle<JointTrajectory>::WrappedResult wrappedResult){
     switch (wrappedResult.code) {
@@ -35,7 +35,8 @@ namespace tm_driver{
   int SendCommand::send_goal(){
     is_success = false;
     auto sendGoalOptions = rclcpp_action::Client<JointTrajectory>::SendGoalOptions();
-    sendGoalOptions.feedback_callback = std::bind(&SendCommand::feedback_callback, this, std::placeholders::_1);
+    sendGoalOptions.feedback_callback = std::bind(feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
+    //sendGoalOptions.feedback_callback = feedback_callback;
     auto goalHandleFuture = actionClient->async_send_goal(goalMsg, sendGoalOptions);
 
     if (rclcpp::spin_until_future_complete(node, goalHandleFuture) != rclcpp::executor::FutureReturnCode::SUCCESS)

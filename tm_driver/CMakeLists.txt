@@ -18,10 +18,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(tm_msgs)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(trajectory_msgs REQUIRED)
+
+include_directories(include
+  ${trajectory_msgs_INCLUDE_DIRS}
+)
+
 add_executable(listen_robot_status src/listen_robot_status.cpp)
 ament_target_dependencies(listen_robot_status
   "rclcpp"
@@ -30,9 +34,11 @@ ament_target_dependencies(listen_robot_status
   ament_target_dependencies(send_tm_command
   "rclcpp"
   "rclcpp_action"
+  "trajectory_msgs"
   "tm_msgs")
 install(TARGETS
   listen_robot_status
+  send_tm_command
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

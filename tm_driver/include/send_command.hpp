@@ -12,15 +12,16 @@ namespace tm_driver{
     
     rclcpp_action::Client<JointTrajectory>::SharedPtr actionClient;
     JointTrajectory::Goal goalMsg;
-    double processPersent;
+    
     rclcpp::Node::SharedPtr node;
     bool is_success;
     int error_code;
 
-    void feedback_callback(rclcpp_action::ClientGoalHandle<JointTrajectory>::SharedPtr,const std::shared_ptr<const JointTrajectory::Feedback> feedback);
+    //static void feedback_callback(SendCommand *sendCommand,,rclcpp_action::ClientGoalHandle<JointTrajectory>::SharedPtr,const std::shared_ptr<const JointTrajectory::Feedback> feedback);
     int check_result_correct(rclcpp_action::ClientGoalHandle<JointTrajectory>::WrappedResult wrappedResult);
     int send_goal();
   public:
+    double processPersent;
     SendCommand(rclcpp::Node::SharedPtr node);
     int send_joint_position(std::vector<std::vector<double>> jointPosition);
     int send_joint_velocity(std::vector<std::vector<double>> jointVelocity);

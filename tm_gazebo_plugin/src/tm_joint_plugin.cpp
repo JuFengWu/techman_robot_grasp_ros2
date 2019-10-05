@@ -22,21 +22,24 @@ namespace gazebo_plugins
   }
   void TMGazeboPluginRosPrivate::message_publish(){
     tm_msgs::msg::RobotStatus motor_status_msg;
+    
+    std::cout<<"send position"<<std::endl;
 
     for(unsigned int i=0;i<this->jointNumber;i++){
       motor_status_msg.current_joint_position.push_back(gazeboJoint[i]->Position(0));
+      //std::cout<<","<<gazeboJoint[i]->Position(0);
       motor_status_msg.current_joint_velocity.push_back(gazeboJoint[i]->GetVelocity(0));
       motor_status_msg.current_joint_force.push_back(gazeboJoint[i]->GetForce(0));
     } 
-
+    
     motorStatusPublish->publish(motor_status_msg);
   }
   void TMGazeboPluginRosPrivate::create_topic(){
     
 
-    motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_state",rclcpp::SensorDataQoS());
+    motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_state",rclcpp::QoS(10));
     
-    rosNode->create_wall_timer(50ms,std::bind(&TMGazeboPluginRosPrivate::message_publish, this));
+    motorStatusPublishTimer = rosNode->create_wall_timer(1s,std::bind(&TMGazeboPluginRosPrivate::message_publish, this));
   }
 
 
