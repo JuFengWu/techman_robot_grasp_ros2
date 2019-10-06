@@ -21,23 +21,29 @@ namespace gazebo_plugins
 
   }
   void TMGazeboPluginRosPrivate::message_publish(){
-    tm_msgs::msg::RobotStatus motor_status_msg;
+    //tm_msgs::msg::RobotStatus motor_status_msg;
+
+    auto motorStatusMsg = std::make_shared<tm_msgs::msg::RobotStatus>();
     
     std::cout<<"send position"<<std::endl;
+    motorStatusMsg->current_joint_position.clear();
+    motorStatusMsg->current_joint_velocity.clear();
+    motorStatusMsg->current_joint_force.clear();
 
     for(unsigned int i=0;i<this->jointNumber;i++){
-      motor_status_msg.current_joint_position.push_back(gazeboJoint[i]->Position(0));
+      std::cout<<"gazeboJoint[i]->Position(0) is "<<gazeboJoint[i]->Position(0)<<std::endl;
+      motorStatusMsg->current_joint_position.push_back(gazeboJoint[i]->Position(0)); //it will push_back to many and not release
       //std::cout<<","<<gazeboJoint[i]->Position(0);
-      motor_status_msg.current_joint_velocity.push_back(gazeboJoint[i]->GetVelocity(0));
-      motor_status_msg.current_joint_force.push_back(gazeboJoint[i]->GetForce(0));
+      //motor_status_msg.current_joint_velocity.push_back(gazeboJoint[i]->GetVelocity(0));
+      //motor_status_msg.current_joint_force.push_back(gazeboJoint[i]->GetForce(0));
     } 
     
-    motorStatusPublish->publish(motor_status_msg);
+    motorStatusPublish->publish(*motorStatusMsg);
   }
   void TMGazeboPluginRosPrivate::create_topic(){
     
 
-    motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_state",rclcpp::QoS(10));
+    motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_states",rclcpp::QoS(100));
     
     motorStatusPublishTimer = rosNode->create_wall_timer(1s,std::bind(&TMGazeboPluginRosPrivate::message_publish, this));
   }
@@ -134,6 +140,18 @@ namespace gazebo_plugins
       std::bind(&TMGazeboPluginRosPrivate::handle_cancel,this,std::placeholders::_1),
       std::bind(&TMGazeboPluginRosPrivate::handle_accepted,this,std::placeholders::_1));
   }
+  void TMGazeboPluginRosPrivate::set_command_to_gazebo_test(){
+
+  this->counter += 0.00005;
+    float joint_value = std::sin(this->counter);
+    //std::cout<<"tm joint plugin joint_value is "<<joint_value<<std::endl;
+    this->gazeboJoint[0]->SetPosition(0, joint_value, false);
+    this->gazeboJoint[1]->SetPosition(0, joint_value, false);
+    this->gazeboJoint[2]->SetPosition(0, joint_value, false);
+    this->gazeboJoint[3]->SetPosition(0, joint_value, false);
+    this->gazeboJoint[4]->SetPosition(0, joint_value, false);
+    this->gazeboJoint[5]->SetPosition(0, joint_value, false);
+  }
   void TMGazeboPluginRosPrivate::set_command_to_gazebo(){
     bool isMove = false;
     if(this->jointPositionControl == joint_control_mode){
@@ -210,7 +228,7 @@ namespace gazebo_plugins
     }
 
     void TMGazeboPluginRos::OnUpdate(){
-        this->robot_simulator->set_command_to_gazebo();
+        this->robot_simulator->set_command_to_gazebo_test();
     }
 
     void TMGazeboPluginRos::Reset(){

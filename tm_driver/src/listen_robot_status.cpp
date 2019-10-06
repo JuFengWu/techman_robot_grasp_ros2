@@ -11,7 +11,7 @@ namespace tm_driver{
             jointTorque[i] = robotStatus->current_joint_force[i];
           }
         };
-     auto subscription = node->create_subscription<tm_msgs::msg::RobotStatus>("tm_driver", 10, callBack);
+     auto subscription = node->create_subscription<tm_msgs::msg::RobotStatus>("tm_motor_states", 100, callBack);
 
     rclcpp::Rate sleepRate(loopRate);
     while (isListen){      
