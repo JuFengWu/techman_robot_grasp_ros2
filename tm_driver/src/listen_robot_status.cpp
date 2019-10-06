@@ -7,30 +7,23 @@ namespace tm_driver{
     
     auto callBack =[this](const tm_msgs::msg::RobotStatus::SharedPtr robotStatus) -> void
         {
-          std::cout<<"I hear something"<<std::endl;
+          //std::cout<<"I hear something"<<std::endl;
           for(int i=0;i<jointNumber;i++){
-            //std::cout<<"i is "<< i <<std::endl;
-            //std::cout<<"robotStatus->current_joint_position is"<<robotStatus->current_joint_position[i]<<std::endl;
             jointPostion[i] = robotStatus->current_joint_position[i];
-            //std::cout<<"jointPostion[i] is"<<jointPostion[i]<<std::endl;
             jointVelocity[i] = robotStatus->current_joint_velocity[i];
             jointTorque[i] = robotStatus->current_joint_force[i];
           }
         };
      auto subscription = node->create_subscription<tm_msgs::msg::RobotStatus>("tm_motor_states", 100, callBack);
 
-    rclcpp::Rate sleepRate(loopRate);
-    while (isListen){      
-      rclcpp::spin_some(node);  
-      sleepRate.sleep();
-    }
+
+    rclcpp::spin(node);
     
     rclcpp::shutdown();
   }
-  ListenRobotSatus::ListenRobotSatus(rclcpp::Node::SharedPtr node,float loopRate){
+  ListenRobotSatus::ListenRobotSatus(rclcpp::Node::SharedPtr node){
       
       isListen = true;
-      this->loopRate = loopRate;
       jointPostion.resize(jointNumber);
       jointVelocity.resize(jointNumber);
       jointTorque.resize(jointNumber);
@@ -39,9 +32,6 @@ namespace tm_driver{
   
   ListenRobotSatus::~ListenRobotSatus(){
       isListen = false;
-  }
-  void ListenRobotSatus::set_loop_rate(float loopRate){
-      this->loopRate = loopRate;
   }
   std::vector<double> ListenRobotSatus::get_joint_position(){
       return jointPostion;
@@ -56,7 +46,7 @@ namespace tm_driver{
 int main(int argc, char * argv[]){
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("MyMsgSuber");
-  std::unique_ptr<tm_driver::ListenRobotSatus> listenRobotSatus = std::make_unique<tm_driver::ListenRobotSatus>(node,0.5);
+  std::unique_ptr<tm_driver::ListenRobotSatus> listenRobotSatus = std::make_unique<tm_driver::ListenRobotSatus>(node);
   rclcpp::Rate sleepRate(1s);
   while(true){
       auto position = listenRobotSatus->get_joint_position();

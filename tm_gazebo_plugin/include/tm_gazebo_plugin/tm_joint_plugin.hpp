@@ -35,7 +35,6 @@ namespace gazebo_plugins
       float initial_joints_value;
       float counter;
       std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::RobotStatus> > motorStatusPublish;
-      std::shared_ptr<rclcpp::TimerBase> motorStatusPublishTimer;
       
     public:
       TMGazeboPluginRosPrivate();

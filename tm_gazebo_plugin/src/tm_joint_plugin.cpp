@@ -28,36 +28,30 @@ namespace gazebo_plugins
     motorStatusMsg->current_joint_position.resize(jointNumber);
     motorStatusMsg->current_joint_velocity.resize(jointNumber);
     motorStatusMsg->current_joint_force.resize(jointNumber);
+    int counter =0;
     while (rclcpp::ok())
     {
-      std::cout<<"send position"<<std::endl;
       motorStatusMsg->current_joint_position.clear();
       motorStatusMsg->current_joint_velocity.clear();
       motorStatusMsg->current_joint_force.clear();
 
-      for(unsigned int i=0;i<this->jointNumber;i++){
-        //std::cout<<"gazeboJoint[i]->Position(0) is "<<gazeboJoint[i]->Position(0)<<std::endl;
-        motorStatusMsg->current_joint_position.push_back(gazeboJoint[i]->Position(0)); //it will push_back to many and not release
-        //std::cout<<","<<gazeboJoint[i]->Position(0);
+      for(unsigned int i=0;i<this->jointNumber;i++){    
+        motorStatusMsg->current_joint_position.push_back(gazeboJoint[i]->Position(0)); 
         motorStatusMsg->current_joint_velocity.push_back(gazeboJoint[i]->GetVelocity(0));
         motorStatusMsg->current_joint_force.push_back(gazeboJoint[i]->GetForce(0));
       } 
-      loop_rate.sleep();
+      //std::cout<<"send msg "<<counter<<std::endl;
+      counter++;
       motorStatusPublish->publish(*motorStatusMsg);
+      loop_rate.sleep();
     }
     
-    
-   
   }
   void TMGazeboPluginRosPrivate::create_topic(){
-    
-
     motorStatusPublish = rosNode->create_publisher<tm_msgs::msg::RobotStatus>("tm_motor_states",rclcpp::QoS(100));
-    
-    //motorStatusPublishTimer = rosNode->create_wall_timer(1s,std::bind(&TMGazeboPluginRosPrivate::message_publish, this));
+
     std::thread(&TMGazeboPluginRosPrivate::message_publish,this).detach();
   }
-
 
   void TMGazeboPluginRosPrivate::execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
     const auto goal = goalHandle->get_goal();
