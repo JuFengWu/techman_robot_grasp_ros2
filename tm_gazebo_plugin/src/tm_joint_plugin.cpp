@@ -55,16 +55,19 @@ namespace gazebo_plugins
 
   void TMGazeboPluginRosPrivate::execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
     const auto goal = goalHandle->get_goal();
+    std::cout<<"get_goal"<<std::endl;
     
     std::vector<int> tajectorySize;
     if( goal->joint_trajectory.points.size() == 0){
           std::cout<<"points are empty!"<<std::endl;
           return;
     }
+    std::cout<<"after check something"<<std::endl;
     if(this->jointPositionControl == joint_control_mode){ 
       for(unsigned int i = 0; i < this->jointNumber; i++){
+        std::cout<<"aaa"<<std::endl;
         for(unsigned int j = 0; j < goal->joint_trajectory.points[i].positions.size(); j++){
-          tajectoryPosition[i][j] =  goal->joint_trajectory.points[i].positions[j];
+          tajectoryPosition[i].push_back( goal->joint_trajectory.points[i].positions[j]);
         }
         std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
         tajectorySize.push_back(goal->joint_trajectory.points[i].positions.size());
@@ -75,7 +78,7 @@ namespace gazebo_plugins
     {
       for(unsigned int i = 0; i < this->jointNumber; i++){
         for(unsigned int j = 0; j < goal->joint_trajectory.points[i].velocities.size(); j++){
-          tajectoryVelocity[i][j] =  goal->joint_trajectory.points[i].velocities[j];
+          tajectoryVelocity[i].push_back( goal->joint_trajectory.points[i].velocities[j]);
         }
         tajectorySize.push_back(goal->joint_trajectory.points[i].velocities.size());
       }
@@ -86,11 +89,12 @@ namespace gazebo_plugins
       std::cout<<"mode error!"<<std::endl;
       return;
     }
-    
+    std::cout<<"get points"<<std::endl;
     pointExecute = true;
     int mostPoint = *std::max_element(std::begin(tajectorySize), std::end(tajectorySize));
     auto feedback = std::make_shared<tm_msgs::action::JointTrajectory::Feedback>();
-    rclcpp::Rate loop_rate(1);
+    auto resultResponse = std::make_shared<tm_msgs::action::JointTrajectory::Result>();
+    rclcpp::Rate loop_rate(1s);
 
     while(pointExecute){
       std::vector<int> currentTajectorySize;
@@ -103,16 +107,29 @@ namespace gazebo_plugins
         }
         
       }
+      // Check if there is a cancel request
+      //if (goalHandle->is_canceling()) {
+      //  resultResponse->error_code = 0;
+      //  resultResponse->is_success = 0;
+      //  goalHandle->canceled(resultResponse);
+      // std::cout<<"Goal Canceled"<<std::endl;
+      //  return;
+      //}
       int currentMostPoint = *std::max_element(std::begin(currentTajectorySize), std::end(currentTajectorySize));
-      double executePersent = 1-(currentMostPoint/mostPoint);
+      double executePersent = 1-(currentMostPoint/(double)mostPoint);
       feedback->process_persent = executePersent;
+      goalHandle->publish_feedback(feedback);
+      std::cout<<"executePersent is "<<executePersent<<std::endl;
       loop_rate.sleep();
     }
-    auto resultResponse = std::make_shared<tm_msgs::action::JointTrajectory::Result>();
-    resultResponse->error_code = 0;
-    resultResponse->is_success = 1;
-    goalHandle->succeed(resultResponse);
-    std::cout<<"success!"<<std::endl;
+    // Check if goal is done
+    if (rclcpp::ok()) {
+      resultResponse->error_code = 0;
+      resultResponse->is_success = 1;
+
+      goalHandle->succeed(resultResponse);
+      std::cout<<"success!"<<std::endl;
+    }
     
   }
   rclcpp_action::GoalResponse TMGazeboPluginRosPrivate::handle_tm_action_goal
@@ -158,6 +175,7 @@ namespace gazebo_plugins
   }
   void TMGazeboPluginRosPrivate::set_command_to_gazebo(){
     bool isMove = false;
+    double jointValue[6];
     if(this->jointPositionControl == joint_control_mode){
       
       for(unsigned int i=0 ; i < this->jointNumber; i++){    
@@ -169,10 +187,11 @@ namespace gazebo_plugins
           tajectoryPosition[i].pop_back(); 
           isMove = true;
         }
-
+        //std::cout<<"position jointValue[i] is"<<jointValue[i];
         gazeboJoint[i]->SetPosition(0, jointValue[i], false);// TODO: check update time
             
       }
+     // std::cout<<" "<<std::endl;
     }
     else // velocity mode
     {
@@ -185,8 +204,10 @@ namespace gazebo_plugins
           tajectoryVelocity[i].pop_back();
           isMove = true;
         }
+        //std::cout<<"vleocity jointValue[i] is"<<jointValue[i];
         gazeboJoint[i]->SetVelocity(0, jointValue[i]);
       }
+      //std::cout<<" "<<std::endl;
     }
     if(!isMove){
       pointExecute = false;
@@ -232,7 +253,7 @@ namespace gazebo_plugins
     }
 
     void TMGazeboPluginRos::OnUpdate(){
-        this->robot_simulator->set_command_to_gazebo_test();
+        this->robot_simulator->set_command_to_gazebo();
     }
 
     void TMGazeboPluginRos::Reset(){

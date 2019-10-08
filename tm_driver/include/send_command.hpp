@@ -2,6 +2,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <iostream>
 #include "tm_msgs/action/joint_trajectory.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 namespace tm_driver{
   
@@ -14,10 +15,10 @@ namespace tm_driver{
     JointTrajectory::Goal goalMsg;
     
     rclcpp::Node::SharedPtr node;
-    bool is_success;
-    int error_code;
-
-    //static void feedback_callback(SendCommand *sendCommand,,rclcpp_action::ClientGoalHandle<JointTrajectory>::SharedPtr,const std::shared_ptr<const JointTrajectory::Feedback> feedback);
+    bool isSuccess;
+    int errorCode;
+    int jointNumber =6;
+    
     int check_result_correct(rclcpp_action::ClientGoalHandle<JointTrajectory>::WrappedResult wrappedResult);
     int send_goal();
   public:
@@ -27,6 +28,7 @@ namespace tm_driver{
     int send_joint_velocity(std::vector<std::vector<double>> jointVelocity);
     double check_process();
     int get_error_code();
+    bool is_success();
   };
 }
 

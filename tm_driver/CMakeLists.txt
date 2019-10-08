@@ -17,6 +17,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(example_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(tm_msgs)
@@ -35,7 +36,9 @@ ament_target_dependencies(listen_robot_status
   "rclcpp"
   "rclcpp_action"
   "trajectory_msgs"
-  "tm_msgs")
+  "tm_msgs"
+  "example_interfaces"
+  )
 install(TARGETS
   listen_robot_status
   send_tm_command
