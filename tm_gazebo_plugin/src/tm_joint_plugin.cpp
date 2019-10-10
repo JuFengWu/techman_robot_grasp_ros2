@@ -63,7 +63,7 @@ namespace gazebo_plugins
           return;
     }
     std::cout<<"after check something"<<std::endl;
-    if(this->jointPositionControl == joint_control_mode){ 
+    if(this->jointPositionControl == controlMode){ 
       for(unsigned int i = 0; i < this->jointNumber; i++){
         std::cout<<"aaa"<<std::endl;
         for(unsigned int j = 0; j < goal->joint_trajectory.points[i].positions.size(); j++){
@@ -72,9 +72,9 @@ namespace gazebo_plugins
         std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
         tajectorySize.push_back(goal->joint_trajectory.points[i].positions.size());
       }
-      controlMode =this->jointPositionControl;
+      
     }
-    else if (this->jointVelocityControl == joint_control_mode)
+    else if (this->jointVelocityControl == controlMode)
     {
       for(unsigned int i = 0; i < this->jointNumber; i++){
         for(unsigned int j = 0; j < goal->joint_trajectory.points[i].velocities.size(); j++){
@@ -82,7 +82,7 @@ namespace gazebo_plugins
         }
         tajectorySize.push_back(goal->joint_trajectory.points[i].velocities.size());
       }
-      controlMode =this->jointVelocityControl;
+      
     }
     else
     {
@@ -99,7 +99,7 @@ namespace gazebo_plugins
     while(pointExecute){
       std::vector<int> currentTajectorySize;
       for(unsigned int i = 0; i < this->jointNumber; i++){
-        if(this->jointPositionControl == joint_control_mode){
+        if(this->jointPositionControl == controlMode){
           currentTajectorySize.push_back(tajectoryPosition[i].size());
         }
         else{
@@ -108,17 +108,18 @@ namespace gazebo_plugins
         
       }
       // Check if there is a cancel request
-      //if (goalHandle->is_canceling()) {
-      //  resultResponse->error_code = 0;
-      //  resultResponse->is_success = 0;
-      //  goalHandle->canceled(resultResponse);
-      // std::cout<<"Goal Canceled"<<std::endl;
-      //  return;
-      //}
+      if (goalHandle->is_canceling()) {
+        resultResponse->error_code = 0;
+        resultResponse->is_success = 0;
+        goalHandle->canceled(resultResponse);
+        std::cout<<"Goal Canceled"<<std::endl;
+        return;
+      }
       int currentMostPoint = *std::max_element(std::begin(currentTajectorySize), std::end(currentTajectorySize));
       double executePersent = 1-(currentMostPoint/(double)mostPoint);
       feedback->process_persent = executePersent;
       goalHandle->publish_feedback(feedback);
+      
       std::cout<<"executePersent is "<<executePersent<<std::endl;
       loop_rate.sleep();
     }
@@ -128,6 +129,7 @@ namespace gazebo_plugins
       resultResponse->is_success = 1;
 
       goalHandle->succeed(resultResponse);
+      
       std::cout<<"success!"<<std::endl;
     }
     
@@ -140,6 +142,7 @@ namespace gazebo_plugins
       std::cout<<"robot_id should bigger than 0"<<std::endl;
       return rclcpp_action::GoalResponse::REJECT;
     }
+    controlMode = goal->joint_control_mode;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 
   }
@@ -176,7 +179,7 @@ namespace gazebo_plugins
   void TMGazeboPluginRosPrivate::set_command_to_gazebo(){
     bool isMove = false;
     double jointValue[6];
-    if(this->jointPositionControl == joint_control_mode){
+    if(this->jointPositionControl == controlMode){
       
       for(unsigned int i=0 ; i < this->jointNumber; i++){    
         if(tajectoryPosition[i].empty()){  
