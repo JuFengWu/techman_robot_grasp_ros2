@@ -11,10 +11,11 @@
 #include <gazebo_ros/node.hpp>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_action/rclcpp_action.hpp"
 #include <chrono>
 
 #include "tm_msgs/msg/robot_status.hpp"
-#include "tm_msgs/msg/joint_trajectorys.hpp"
+#include "tm_msgs/action/joint_trajectory.hpp"
 
 
 #include <iostream>
@@ -25,7 +26,7 @@ namespace gazebo_plugins
 
   class TMGazeboPluginRosPrivate {
     private:
-      
+      const unsigned int jointNumber=6;
       void message_publish();
       std::vector<std::vector<double>> tajectoryVelocity;
       std::vector<std::vector<double>> tajectoryPosition;
@@ -39,22 +40,22 @@ namespace gazebo_plugins
       TMGazeboPluginRosPrivate();
       gazebo::physics::ModelPtr model;//TODO: change to set, get
       gazebo_ros::Node::SharedPtr rosNode;
-      rclcpp::Node::SharedPtr listenNode;
 
       const int jointPositionControl =0;
       const int jointVelocityControl =1;
       int controlMode = 0;
-      const unsigned int jointNumber=6;
 
       void initial_modle_pose() ;
       void set_model_joint() ;
-      void create_topic();
+      void create_topic() ;
+      void create_command_action() ;
       void set_command_to_gazebo() ;
       void set_command_to_gazebo_test();
-
-      void listen_thread(rclcpp::Node::SharedPtr node);
-      void create_listen_command_topic();
-
+      rclcpp_action::GoalResponse handle_tm_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const tm_msgs::action::JointTrajectory::Goal> goal);
+      rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
+      void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
+      void execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle);
+      
       int joint_control_mode;
       bool pointExecute;
     

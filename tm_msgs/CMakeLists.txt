@@ -26,6 +26,7 @@ find_package(geometry_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RobotStatus.msg"
+  "msg/JointTrajectorys.msg"
   "action/JointTrajectory.action"
   DEPENDENCIES
   action_msgs

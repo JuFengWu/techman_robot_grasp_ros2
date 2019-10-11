@@ -53,58 +53,117 @@ namespace gazebo_plugins
     std::thread(&TMGazeboPluginRosPrivate::message_publish,this).detach();
   }
 
-  void TMGazeboPluginRosPrivate::listen_thread(rclcpp::Node::SharedPtr node){
+  void TMGazeboPluginRosPrivate::execute_joint_move(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
+    const auto goal = goalHandle->get_goal();
+    std::cout<<"get_goal"<<std::endl;
     
-    auto callBack =[this](const tm_msgs::msg::JointTrajectorys::SharedPtr jointTrajectorys) -> void
-        {
-          std::cout<<"hear a command!!"<<std::endl;
-          /*if(jointTrajectorys->robot_id<0){
-            std::cout<<"id is not correct"<<std::endl;
-          }
-          controlMode = jointTrajectorys->joint_control_mode;
-          if(this->jointPositionControl == controlMode){ 
-            for(unsigned int i = 0; i < this->jointNumber; i++){
-              for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].positions.size(); j++){
-                tajectoryPosition[i].push_back( jointTrajectorys->joint_trajectory.points[i].positions[j]);
-              }
-              std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
-            
-            }
-            
-          }
-          else if (this->jointVelocityControl == controlMode)
-          {
-            for(unsigned int i = 0; i < this->jointNumber; i++){
-              for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].velocities.size(); j++){
-                tajectoryVelocity[i].push_back( jointTrajectorys->joint_trajectory.points[i].velocities[j]);
-              }
-              std::reverse(tajectoryVelocity[i].begin(),tajectoryVelocity[i].end());
-            }
-            
-          }
-          else
-          {
-            std::cout<<"mode error!"<<std::endl;
-            return;
-          }
-          pointExecute = true;*/
-        };
-    auto subscription = node->create_subscription<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs", rclcpp::QoS(100), callBack);
-
-    std::cout<<"in thread!!"<<std::endl;
-
-    rclcpp::spin(node);
-
-    std::cout<<"after thread spin node!!"<<std::endl;
-    
-    rclcpp::shutdown();
-  }
-
-  void TMGazeboPluginRosPrivate::create_listen_command_topic(){
+    std::vector<int> tajectorySize;
+    if( goal->joint_trajectory.points.size() == 0){
+          std::cout<<"points are empty!"<<std::endl;
+          return;
+    }
+    std::cout<<"after check something"<<std::endl;
+    if(this->jointPositionControl == controlMode){ 
+      for(unsigned int i = 0; i < this->jointNumber; i++){
+        std::cout<<"aaa"<<std::endl;
+        for(unsigned int j = 0; j < goal->joint_trajectory.points[i].positions.size(); j++){
+          tajectoryPosition[i].push_back( goal->joint_trajectory.points[i].positions[j]);
+        }
+        std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
+        tajectorySize.push_back(goal->joint_trajectory.points[i].positions.size());
+      }
       
-      std::thread(&TMGazeboPluginRosPrivate::listen_thread,this,listenNode).detach();
+    }
+    else if (this->jointVelocityControl == controlMode)
+    {
+      for(unsigned int i = 0; i < this->jointNumber; i++){
+        for(unsigned int j = 0; j < goal->joint_trajectory.points[i].velocities.size(); j++){
+          tajectoryVelocity[i].push_back( goal->joint_trajectory.points[i].velocities[j]);
+        }
+        tajectorySize.push_back(goal->joint_trajectory.points[i].velocities.size());
+      }
+      
+    }
+    else
+    {
+      std::cout<<"mode error!"<<std::endl;
+      return;
+    }
+    std::cout<<"get points"<<std::endl;
+    pointExecute = true;
+    int mostPoint = *std::max_element(std::begin(tajectorySize), std::end(tajectorySize));
+    auto feedback = std::make_shared<tm_msgs::action::JointTrajectory::Feedback>();
+    auto resultResponse = std::make_shared<tm_msgs::action::JointTrajectory::Result>();
+    rclcpp::Rate loop_rate(1s);
+
+    while(pointExecute){
+      std::vector<int> currentTajectorySize;
+      for(unsigned int i = 0; i < this->jointNumber; i++){
+        if(this->jointPositionControl == controlMode){
+          currentTajectorySize.push_back(tajectoryPosition[i].size());
+        }
+        else{
+          currentTajectorySize.push_back(tajectoryVelocity[i].size());
+        }
+        
+      }
+      // Check if there is a cancel request
+      if (goalHandle->is_canceling()) {
+        resultResponse->error_code = 0;
+        resultResponse->is_success = 0;
+        goalHandle->canceled(resultResponse);
+        std::cout<<"Goal Canceled"<<std::endl;
+        return;
+      }
+      int currentMostPoint = *std::max_element(std::begin(currentTajectorySize), std::end(currentTajectorySize));
+      double executePersent = 1-(currentMostPoint/(double)mostPoint);
+      feedback->process_persent = executePersent;
+      goalHandle->publish_feedback(feedback);
+      
+      std::cout<<"executePersent is "<<executePersent<<std::endl;
+      loop_rate.sleep();
+    }
+    // Check if goal is done
+    if (rclcpp::ok()) {
+      resultResponse->error_code = 0;
+      resultResponse->is_success = 1;
+
+      goalHandle->succeed(resultResponse);
+      
+      std::cout<<"success!"<<std::endl;
+    }
+    
   }
-  
+  rclcpp_action::GoalResponse TMGazeboPluginRosPrivate::handle_tm_action_goal
+    (const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const tm_msgs::action::JointTrajectory::Goal> goal){
+    RCLCPP_INFO(rclcpp::get_logger("server"), "Got goal request");// TODO: rclcpp::get_logger("server") may have problem
+    (void)uuid;
+    if (goal->robot_id <0) {
+      std::cout<<"robot_id should bigger than 0"<<std::endl;
+      return rclcpp_action::GoalResponse::REJECT;
+    }
+    controlMode = goal->joint_control_mode;
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+
+  }
+  rclcpp_action::CancelResponse TMGazeboPluginRosPrivate::handle_cancel
+    (const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
+    std::cout<<"Got request to cancel goal"<<std::endl;
+    (void)goalHandle;
+    return rclcpp_action::CancelResponse::ACCEPT;
+  }
+  void TMGazeboPluginRosPrivate::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tm_msgs::action::JointTrajectory>> goalHandle){
+    std::cout<<"Accept action!"<<std::endl;
+    std::thread(&TMGazeboPluginRosPrivate::execute_joint_move, this, goalHandle).detach();
+  }
+  void TMGazeboPluginRosPrivate::create_command_action(){
+    auto action_server = rclcpp_action::create_server<tm_msgs::action::JointTrajectory>(
+      rosNode,
+      "techman_action_server",
+      std::bind(&TMGazeboPluginRosPrivate::handle_tm_action_goal,this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&TMGazeboPluginRosPrivate::handle_cancel,this,std::placeholders::_1),
+      std::bind(&TMGazeboPluginRosPrivate::handle_accepted,this,std::placeholders::_1));
+  }
   void TMGazeboPluginRosPrivate::set_command_to_gazebo_test(){
 
   this->counter += 0.00005;
@@ -137,7 +196,7 @@ namespace gazebo_plugins
       }
      // std::cout<<" "<<std::endl;
     }
-    else if (this->jointVelocityControl == controlMode)
+    else // velocity mode
     {
       for(unsigned int i=0 ; i < this->jointNumber; i++){
         if(tajectoryVelocity[i].empty()){
@@ -152,9 +211,6 @@ namespace gazebo_plugins
         gazeboJoint[i]->SetVelocity(0, jointValue[i]);
       }
       //std::cout<<" "<<std::endl;
-    }
-    else{
-      std::cout<<"control mode error!!"<<std::endl;
     }
     if(!isMove){
       pointExecute = false;
@@ -184,13 +240,15 @@ namespace gazebo_plugins
         
         this->robot_simulator->model = model;
         this->robot_simulator->rosNode = gazebo_ros::Node::Get(_sdf);
-        this->robot_simulator->listenNode = rclcpp::Node::make_shared("ListenCommand");        
+        
+        
         
         this->robot_simulator->set_model_joint();
         
         this->robot_simulator->create_topic();
         
-        this->robot_simulator->create_listen_command_topic();
+        this->robot_simulator->create_command_action();
+        
 
         this->updateConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
             std::bind(&TMGazeboPluginRos::OnUpdate, this));

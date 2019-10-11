@@ -28,7 +28,7 @@ namespace tm_driver{
       jointVelocity.resize(jointNumber);
       jointTorque.resize(jointNumber);
       std::thread(&ListenRobotSatus::listen_thread, this,node).detach();
-    }
+  }
   
   ListenRobotSatus::~ListenRobotSatus(){
       isListen = false;
