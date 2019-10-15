@@ -5,6 +5,15 @@ namespace tm_driver{
   SendCommand::SendCommand(rclcpp::Node::SharedPtr node){
     this->node = node;
     this->jointCommabdPublish = node->create_publisher<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs",rclcpp::QoS(100));
+    auto listenNode = rclcpp::Node::make_shared("MyMsgSuber");
+    auto callBack =[this](const tm_msgs::msg::RobotStatus::SharedPtr robotStatus) -> void
+        {
+          this->isProcessCmd = robotStatus->is_process_cmd;
+          this->currentCommanderId = robotStatus->commander_id;
+        };
+    auto subscription = listenNode->create_subscription<tm_msgs::msg::RobotStatus>("tm_motor_states", 100, callBack);
+
+    //open thread and spin listenNode
   }
 
   void SendCommand::send_joint_position(std::vector<std::vector<double>> jointPosition){
@@ -23,19 +32,27 @@ namespace tm_driver{
     }
     std::cout<<"ready to send goal!!"<<std::endl;
     rclcpp::WallRate loop_rate(1);
-    while(rclcpp::ok()){
     
-    RCLCPP_INFO(node->get_logger(),"Pub something");
-    jointCommabdPublish->publish(*motorStatusMsg);
-    loop_rate.sleep();
-  }
-    
+    while(true) {
+      if(!isProcessCmd){
+        motorStatusMsg->robot_id ++;
+        RCLCPP_INFO(node->get_logger(),"Pub something");
+        jointCommabdPublish->publish(*motorStatusMsg);
+      }
+      else if(currentCommanderId == myCommanderId){
+        break;
+      }
+      else{
+        std::cout<<"other is controlling robot, wait a momnet"<<std::endl;
+      }
+      loop_rate.sleep();
+    }
     
   }
   void SendCommand::send_joint_velocity(std::vector<std::vector<double>> jointVelocity){
 
     auto motorStatusMsg = std::make_shared<tm_msgs::msg::JointTrajectorys>();
-    motorStatusMsg->robot_id = 0;
+    motorStatusMsg->robot_id =0;
     motorStatusMsg->joint_control_mode = 0;
     motorStatusMsg->joint_trajectory.points.resize(jointNumber);
     
@@ -81,13 +98,13 @@ int main(int argc, char * argv[]){
 
   
   sendCommand->send_joint_position(jointPoints);
-  std::cout<<"AAAAAAA"<<std::endl;
-  rclcpp::WallRate loop_rate(1);
-  while(true)
-  {
-    std::cout<<"in loop rate"<<std::endl;
-    loop_rate.sleep();
-  }
+  //std::cout<<"AAAAAAA"<<std::endl;
+  //rclcpp::WallRate loop_rate(1);
+  //while(true)
+ // {
+  //  std::cout<<"in loop rate"<<std::endl;
+   // loop_rate.sleep();
+  //}
   
   
   std::cout<<"finish!"<<std::endl;

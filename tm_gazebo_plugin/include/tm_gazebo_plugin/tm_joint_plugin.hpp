@@ -21,7 +21,11 @@
 using namespace std::chrono_literals;
 namespace gazebo_plugins
 {
-  
+  enum class ErrorCodeMessage{
+    noError,
+    idNotCorrect,
+    modeError
+  };
 
   class TMGazeboPluginRosPrivate {
     private:
@@ -35,6 +39,11 @@ namespace gazebo_plugins
       float counter;
       std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::RobotStatus> > motorStatusPublish;
       
+      int controlMode = 0;
+      bool pointExecute;
+      int currentCommanderId;
+      ErrorCodeMessage errorCode;
+      
     public:
       TMGazeboPluginRosPrivate();
       gazebo::physics::ModelPtr model;//TODO: change to set, get
@@ -42,8 +51,7 @@ namespace gazebo_plugins
       rclcpp::Node::SharedPtr listenNode;
 
       const int jointPositionControl =0;
-      const int jointVelocityControl =1;
-      int controlMode = 0;
+      const int jointVelocityControl =1;      
       const unsigned int jointNumber=6;
 
       void initial_modle_pose() ;
@@ -55,8 +63,7 @@ namespace gazebo_plugins
       void listen_thread(rclcpp::Node::SharedPtr node);
       void create_listen_command_topic();
 
-      int joint_control_mode;
-      bool pointExecute;
+      
     
   };
 

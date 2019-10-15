@@ -28,7 +28,7 @@ namespace gazebo_plugins
     motorStatusMsg->current_joint_position.resize(jointNumber);
     motorStatusMsg->current_joint_velocity.resize(jointNumber);
     motorStatusMsg->current_joint_force.resize(jointNumber);
-    int counter =0;
+    
     while (rclcpp::ok())
     {
       motorStatusMsg->current_joint_position.clear();
@@ -40,8 +40,10 @@ namespace gazebo_plugins
         motorStatusMsg->current_joint_velocity.push_back(gazeboJoint[i]->GetVelocity(0));
         motorStatusMsg->current_joint_force.push_back(gazeboJoint[i]->GetForce(0));
       } 
-      //std::cout<<"send msg "<<counter<<std::endl;
-      counter++;
+      motorStatusMsg->error_code = static_cast<int> (errorCode);
+      motorStatusMsg->is_process_cmd = pointExecute;
+      motorStatusMsg->commander_id = currentCommanderId;
+      
       motorStatusPublish->publish(*motorStatusMsg);
       loop_rate.sleep();
     }
@@ -58,9 +60,13 @@ namespace gazebo_plugins
     auto callBack =[this](const tm_msgs::msg::JointTrajectorys::SharedPtr jointTrajectorys) -> void
         {
           std::cout<<"hear a command!!"<<std::endl;
-          /*if(jointTrajectorys->robot_id<0){
+          int robotID = jointTrajectorys->robot_id;
+          std::cout<<"robotID is "<<robotID<<std::endl;
+          if(jointTrajectorys->robot_id<0){
             std::cout<<"id is not correct"<<std::endl;
+            errorCode = ErrorCodeMessage::idNotCorrect;
           }
+          currentCommanderId = jointTrajectorys->commander_id;
           controlMode = jointTrajectorys->joint_control_mode;
           if(this->jointPositionControl == controlMode){ 
             for(unsigned int i = 0; i < this->jointNumber; i++){
@@ -85,9 +91,10 @@ namespace gazebo_plugins
           else
           {
             std::cout<<"mode error!"<<std::endl;
+            errorCode = ErrorCodeMessage::modeError;
             return;
           }
-          pointExecute = true;*/
+          pointExecute = true;
         };
     auto subscription = node->create_subscription<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs", rclcpp::QoS(100), callBack);
 
@@ -158,6 +165,10 @@ namespace gazebo_plugins
     }
     if(!isMove){
       pointExecute = false;
+      currentCommanderId = 0;
+    }
+    else{
+      errorCode = ErrorCodeMessage::noError;
     }
   }
 

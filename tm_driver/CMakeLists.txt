@@ -31,7 +31,7 @@ add_executable(listen_robot_status src/listen_robot_status.cpp)
 ament_target_dependencies(listen_robot_status
   "rclcpp"
   "tm_msgs")
-  add_executable(send_tm_command src/send_command.cpp)
+add_executable(send_tm_command src/send_command.cpp)
   ament_target_dependencies(send_tm_command
   "rclcpp"
   "rclcpp_action"
