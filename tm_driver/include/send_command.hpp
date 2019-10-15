@@ -10,9 +10,11 @@ namespace tm_driver{
     std::shared_ptr< rclcpp::Publisher <tm_msgs::msg::JointTrajectorys> > jointCommabdPublish;
     rclcpp::Node::SharedPtr node;
     int jointNumber =6;
-    int myCommanderId = 1;
+    const int myCommanderId = 9988;
     int currentCommanderId = 0;
     bool isProcessCmd = false;
+    void listen_thread();
+    
   public:
     SendCommand(rclcpp::Node::SharedPtr node);
     void send_joint_position(std::vector<std::vector<double>> jointPosition);

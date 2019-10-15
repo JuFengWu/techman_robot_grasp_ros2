@@ -1,25 +1,36 @@
 #include "../include/send_command.hpp"
 #include<cmath>
+
+using namespace std::chrono_literals;
+
 namespace tm_driver{
 
-  SendCommand::SendCommand(rclcpp::Node::SharedPtr node){
-    this->node = node;
-    this->jointCommabdPublish = node->create_publisher<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs",rclcpp::QoS(100));
-    auto listenNode = rclcpp::Node::make_shared("MyMsgSuber");
+  void SendCommand::listen_thread(){
+    auto listenNode = rclcpp::Node::make_shared("MyMsgListen");
+
     auto callBack =[this](const tm_msgs::msg::RobotStatus::SharedPtr robotStatus) -> void
-        {
+        {    
           this->isProcessCmd = robotStatus->is_process_cmd;
           this->currentCommanderId = robotStatus->commander_id;
         };
     auto subscription = listenNode->create_subscription<tm_msgs::msg::RobotStatus>("tm_motor_states", 100, callBack);
 
-    //open thread and spin listenNode
+    rclcpp::spin(listenNode);
+    
+    rclcpp::shutdown();
   }
 
+  SendCommand::SendCommand(rclcpp::Node::SharedPtr node){
+    this->node = node;
+    this->jointCommabdPublish = node->create_publisher<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs",rclcpp::QoS(100));
+    std::thread(&SendCommand::listen_thread, this).detach();
+
+  }
   void SendCommand::send_joint_position(std::vector<std::vector<double>> jointPosition){
 
     auto motorStatusMsg = std::make_shared<tm_msgs::msg::JointTrajectorys>();
-    motorStatusMsg->robot_id = 0;
+    motorStatusMsg->robot_id =0;
+    motorStatusMsg->commander_id =myCommanderId;
     motorStatusMsg->joint_control_mode = 0;
     motorStatusMsg->joint_trajectory.points.resize(jointNumber);
     
@@ -31,11 +42,10 @@ namespace tm_driver{
       }
     }
     std::cout<<"ready to send goal!!"<<std::endl;
-    rclcpp::WallRate loop_rate(1);
+    rclcpp::WallRate loop_rate(2s);
     
     while(true) {
       if(!isProcessCmd){
-        motorStatusMsg->robot_id ++;
         RCLCPP_INFO(node->get_logger(),"Pub something");
         jointCommabdPublish->publish(*motorStatusMsg);
       }
@@ -43,7 +53,7 @@ namespace tm_driver{
         break;
       }
       else{
-        std::cout<<"other is controlling robot, wait a momnet"<<std::endl;
+        std::cout<<"other is controlling robot, wait a moment"<<std::endl;
       }
       loop_rate.sleep();
     }
@@ -53,6 +63,7 @@ namespace tm_driver{
 
     auto motorStatusMsg = std::make_shared<tm_msgs::msg::JointTrajectorys>();
     motorStatusMsg->robot_id =0;
+    motorStatusMsg->commander_id =myCommanderId;
     motorStatusMsg->joint_control_mode = 0;
     motorStatusMsg->joint_trajectory.points.resize(jointNumber);
     
@@ -86,28 +97,19 @@ int main(int argc, char * argv[]){
     jointPoints.push_back(jointPosition);
   }
   
-  std::cout<<"jointPoints[i].size() is "<<jointPoints[0].size()<<std::endl;
+  /*std::cout<<"jointPoints[i].size() is "<<jointPoints[0].size()<<std::endl;
 
     for(unsigned int j=0;j<jointPoints[0].size();j++){
         std::cout<<"jointPoints[i][j]"<<jointPoints[0][j]<<std::endl;
       }
-
+  */
 
   auto node = rclcpp::Node::make_shared("MyMsgSuber");
   std::unique_ptr<tm_driver::SendCommand> sendCommand = std::make_unique<tm_driver::SendCommand>(node);
 
-  
   sendCommand->send_joint_position(jointPoints);
-  //std::cout<<"AAAAAAA"<<std::endl;
-  //rclcpp::WallRate loop_rate(1);
-  //while(true)
- // {
-  //  std::cout<<"in loop rate"<<std::endl;
-   // loop_rate.sleep();
-  //}
-  
+  rclcpp::shutdown();
   
   std::cout<<"finish!"<<std::endl;
-  
 
 }

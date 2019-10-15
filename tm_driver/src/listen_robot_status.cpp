@@ -12,6 +12,10 @@ namespace tm_driver{
             jointPostion[i] = robotStatus->current_joint_position[i];
             jointVelocity[i] = robotStatus->current_joint_velocity[i];
             jointTorque[i] = robotStatus->current_joint_force[i];
+
+            isProcessCmd = robotStatus->is_process_cmd;
+            commanderId = robotStatus->commander_id;
+            errorCode = robotStatus->error_code;
           }
         };
      auto subscription = node->create_subscription<tm_msgs::msg::RobotStatus>("tm_motor_states", 100, callBack);

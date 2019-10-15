@@ -10,6 +10,10 @@ namespace tm_driver{
     std::vector<double> jointPostion;
     std::vector<double> jointVelocity;
     std::vector<double> jointTorque;
+
+    bool isProcessCmd;
+    int commanderId;
+    int errorCode;
     void listen_thread(rclcpp::Node::SharedPtr node);
     
   public:

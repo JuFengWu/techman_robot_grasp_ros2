@@ -88,7 +88,7 @@ namespace gazebo_plugins
     gazebo::physics::ModelPtr _model;
     // Pointer to the update event connection
     gazebo::event::ConnectionPtr updateConnection;
-    std::vector<gazebo::physics::JointPtr> _joints;
+    
     std::unique_ptr<TMGazeboPluginRosPrivate> robot_simulator;
   };
 }

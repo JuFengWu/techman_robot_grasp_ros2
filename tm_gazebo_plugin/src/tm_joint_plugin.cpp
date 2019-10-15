@@ -24,7 +24,7 @@ namespace gazebo_plugins
     //tm_msgs::msg::RobotStatus motor_status_msg;
 
     auto motorStatusMsg = std::make_shared<tm_msgs::msg::RobotStatus>();
-    rclcpp::WallRate loop_rate(1s);
+    rclcpp::WallRate loop_rate(50ms);
     motorStatusMsg->current_joint_position.resize(jointNumber);
     motorStatusMsg->current_joint_velocity.resize(jointNumber);
     motorStatusMsg->current_joint_force.resize(jointNumber);
@@ -60,8 +60,7 @@ namespace gazebo_plugins
     auto callBack =[this](const tm_msgs::msg::JointTrajectorys::SharedPtr jointTrajectorys) -> void
         {
           std::cout<<"hear a command!!"<<std::endl;
-          int robotID = jointTrajectorys->robot_id;
-          std::cout<<"robotID is "<<robotID<<std::endl;
+          
           if(jointTrajectorys->robot_id<0){
             std::cout<<"id is not correct"<<std::endl;
             errorCode = ErrorCodeMessage::idNotCorrect;
@@ -98,11 +97,7 @@ namespace gazebo_plugins
         };
     auto subscription = node->create_subscription<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs", rclcpp::QoS(100), callBack);
 
-    std::cout<<"in thread!!"<<std::endl;
-
     rclcpp::spin(node);
-
-    std::cout<<"after thread spin node!!"<<std::endl;
     
     rclcpp::shutdown();
   }
@@ -116,7 +111,6 @@ namespace gazebo_plugins
 
   this->counter += 0.00005;
     float joint_value = std::sin(this->counter);
-    //std::cout<<"tm joint plugin joint_value is "<<joint_value<<std::endl;
     this->gazeboJoint[0]->SetPosition(0, joint_value, false);
     this->gazeboJoint[1]->SetPosition(0, joint_value, false);
     this->gazeboJoint[2]->SetPosition(0, joint_value, false);
@@ -138,11 +132,9 @@ namespace gazebo_plugins
           tajectoryPosition[i].pop_back(); 
           isMove = true;
         }
-        //std::cout<<"position jointValue[i] is"<<jointValue[i];
-        gazeboJoint[i]->SetPosition(0, jointValue[i], false);// TODO: check update time
+        gazeboJoint[i]->SetPosition(0, jointValue[i], false);
             
       }
-     // std::cout<<" "<<std::endl;
     }
     else if (this->jointVelocityControl == controlMode)
     {
@@ -155,10 +147,8 @@ namespace gazebo_plugins
           tajectoryVelocity[i].pop_back();
           isMove = true;
         }
-        //std::cout<<"vleocity jointValue[i] is"<<jointValue[i];
         gazeboJoint[i]->SetVelocity(0, jointValue[i]);
       }
-      //std::cout<<" "<<std::endl;
     }
     else{
       std::cout<<"control mode error!!"<<std::endl;
