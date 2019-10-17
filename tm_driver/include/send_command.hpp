@@ -14,6 +14,7 @@ namespace tm_driver{
     int currentCommanderId = 0;
     bool isProcessCmd = false;
     void listen_thread();
+    int commandCounter = 0;
     
   public:
     SendCommand(rclcpp::Node::SharedPtr node);

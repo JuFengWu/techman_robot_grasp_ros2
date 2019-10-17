@@ -42,6 +42,7 @@ namespace gazebo_plugins
       int controlMode = 0;
       bool pointExecute;
       int currentCommanderId;
+      int commandCounter;
       ErrorCodeMessage errorCode;
       
     public:

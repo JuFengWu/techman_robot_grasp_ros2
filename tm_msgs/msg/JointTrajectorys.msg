@@ -2,3 +2,4 @@ trajectory_msgs/JointTrajectory joint_trajectory
 int32 robot_id
 int32 joint_control_mode
 int32 commander_id
+int32 command_counter

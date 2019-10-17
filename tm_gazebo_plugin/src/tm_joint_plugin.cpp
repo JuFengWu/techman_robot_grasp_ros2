@@ -65,35 +65,43 @@ namespace gazebo_plugins
             std::cout<<"id is not correct"<<std::endl;
             errorCode = ErrorCodeMessage::idNotCorrect;
           }
-          currentCommanderId = jointTrajectorys->commander_id;
-          controlMode = jointTrajectorys->joint_control_mode;
-          if(this->jointPositionControl == controlMode){ 
-            for(unsigned int i = 0; i < this->jointNumber; i++){
-              for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].positions.size(); j++){
-                tajectoryPosition[i].push_back( jointTrajectorys->joint_trajectory.points[i].positions[j]);
-              }
-              std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
-            
-            }
-            
-          }
-          else if (this->jointVelocityControl == controlMode)
+          else if (commandCounter == jointTrajectorys->command_counter && currentCommanderId ==jointTrajectorys->commander_id)
           {
-            for(unsigned int i = 0; i < this->jointNumber; i++){
-              for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].velocities.size(); j++){
-                tajectoryVelocity[i].push_back( jointTrajectorys->joint_trajectory.points[i].velocities[j]);
+            std::cout<<"command repeat!"<<std::endl;
+          }
+          else{
+            std::cout<<"command correct!!"<<std::endl;
+            commandCounter =  jointTrajectorys->command_counter;
+            currentCommanderId = jointTrajectorys->commander_id;
+            controlMode = jointTrajectorys->joint_control_mode;
+            if(this->jointPositionControl == controlMode){ 
+              for(unsigned int i = 0; i < this->jointNumber; i++){
+                for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].positions.size(); j++){
+                  tajectoryPosition[i].push_back( jointTrajectorys->joint_trajectory.points[i].positions[j]);
+                }
+                std::reverse(tajectoryPosition[i].begin(),tajectoryPosition[i].end());
+              
               }
-              std::reverse(tajectoryVelocity[i].begin(),tajectoryVelocity[i].end());
+              
             }
-            
-          }
-          else
-          {
-            std::cout<<"mode error!"<<std::endl;
-            errorCode = ErrorCodeMessage::modeError;
-            return;
-          }
-          pointExecute = true;
+            else if (this->jointVelocityControl == controlMode)
+            {
+              for(unsigned int i = 0; i < this->jointNumber; i++){
+                for(unsigned int j = 0; j < jointTrajectorys->joint_trajectory.points[i].velocities.size(); j++){
+                  tajectoryVelocity[i].push_back( jointTrajectorys->joint_trajectory.points[i].velocities[j]);
+                }
+                std::reverse(tajectoryVelocity[i].begin(),tajectoryVelocity[i].end());
+              }
+              
+            }
+            else
+            {
+              std::cout<<"mode error!"<<std::endl;
+              errorCode = ErrorCodeMessage::modeError;
+              return;
+            }
+            pointExecute = true;
+          }         
         };
     auto subscription = node->create_subscription<tm_msgs::msg::JointTrajectorys>("joint_trajectory_msgs", rclcpp::QoS(100), callBack);
 

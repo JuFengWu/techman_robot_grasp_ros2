@@ -41,6 +41,7 @@ namespace tm_driver{
         motorStatusMsg->joint_trajectory.points[i].positions.push_back(jointPosition[i][j]);
       }
     }
+    motorStatusMsg->command_counter = commandCounter;
     std::cout<<"ready to send goal!!"<<std::endl;
     rclcpp::WallRate loop_rate(2s);
     
@@ -57,6 +58,7 @@ namespace tm_driver{
       }
       loop_rate.sleep();
     }
+    commandCounter++;
     
   }
   void SendCommand::send_joint_velocity(std::vector<std::vector<double>> jointVelocity){
