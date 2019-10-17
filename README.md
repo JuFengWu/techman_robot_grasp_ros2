@@ -12,4 +12,11 @@ You can launch Gazebo and show the robot and griiper just type
 ```
 ros2 launch tm_launch tm_gazebo_move.launch.py
 ```
-you can see techman robot move in rviz
+you can see techman robot stand in gazebo environment
+
+#### send command to Gazebo
+You can send command to gazebo by typing
+```
+run tm_driver send_tm_command
+```
+you can see techman robot run in gazebo environment
