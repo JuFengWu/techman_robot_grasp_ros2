@@ -26,6 +26,7 @@
     <selfCollide>true</selfCollide>
   </gazebo>
 
+
   <gazebo>
 
     <plugin filename="libgazebo_ros_joint_state_publisher.so" name="joint_state">
@@ -68,6 +69,75 @@
       <axis7>finger_joint</axis7>
     </plugin>
   </gazebo>
+
+    <gazebo reference="camera_link">
+      <sensor type="camera" name="eye_in_hand_camera">
+          <always_on>0</always_on>
+          <update_rate>15.0</update_rate>
+          <camera name="hand_camera">
+            <horizontal_fov>1.3962634</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.02</near>
+              <far>300</far>
+            </clip>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.007</stddev>
+            </noise>
+          </camera>
+          <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+            <ros>
+                <namespace>tm_camera</namespace>
+                <argument>image_raw:=image_demo</argument>
+                <argument>camera_info:=camera_info_demo</argument>
+            </ros>
+            
+            <camera_name>eye_in_hand_camera</camera_name>
+            <frame_name>camera_link_optical</frame_name>
+            <hack_baseline>0.07</hack_baseline>
+            
+          </plugin>
+        </sensor>
+      </gazebo>
+      <!--
+      <sensor type="camera" name="camera1">
+          <update_rate>60</update_rate>
+          <visualize>true</visualize>
+          <camera name="head">
+            <horizontal_fov>1.3962634</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.02</near>
+              <far>300</far>
+            </clip>
+            <noise>
+              <type>gaussian</type>
+              
+              <mean>0.0</mean>
+              <stddev>0.007</stddev>
+            </noise>
+          </camera>
+          <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+            <ros>
+              <namespace>demo_cam</namespace>
+              
+              <argument>image_raw:=image_demo</argument>
+              <argument>camera_info:=camera_info_demo</argument>
+            </ros>
+          </plugin>
+        </sensor>
+      -->
+  
   <transmission name="shoulder_1_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="shoulder_1_joint">
@@ -324,6 +394,44 @@
     <child link="tip_link"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0579"/>
   </joint>
+
+<!-- Camera -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="tip_link"/>
+    <child link="camera_link"/>
+    <origin  xyz="0 0.08 0.0421" rpy="0 0 0"/>
+  </joint>
+
+  <link name="camera_link">
+  </link>
+
+  <joint name="camera_optical_joint" type="fixed">
+    <!-- these values have to be these values otherwise the gazebo camera image
+        won't be aligned properly with the frame it is supposedly originating from -->
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+    <parent link="camera_link"/>
+    <child link="camera_link_optical"/>
+  </joint>
+
+  <link name="camera_link_optical">
+  </link>
+
+<!--
+  <link name="eye_in_hand_camera_link" />
+    <joint name="eye_in_hand_camera_joint" type="fixed">
+      <parent link="tip_link" />
+      <child link="eye_in_hand_camera_link" />
+      <origin xyz="0 0.08 0.0421" rpy="0 0 0" />
+    </joint>
+
+  <link name="eye_in_hand_camera_rgb_frame" />
+  <joint name="eye_in_hand_camera_rgb_joint" type="fixed">
+    <parent link="$eye_in_hand_camera_link" />
+    <child link="$eye_in_hand_camera_rgb_frame" />
+    <origin xyz="0 0 0" rpy="-1.57079632679 -1.57079632679 0" />
+  </joint>
+-->
+
   <!-- ROS base to TM 'base_link' Coordinates transform -->
   <link name="base"/>
   <joint name="base-base_link" type="fixed">
