@@ -22,6 +22,9 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(tm_msgs)
 find_package(trajectory_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
+
 
 include_directories(include
   ${trajectory_msgs_INCLUDE_DIRS}
@@ -39,9 +42,17 @@ add_executable(send_tm_command src/send_command.cpp)
   "tm_msgs"
   "example_interfaces"
   )
+
+  add_executable(tm_get_img src/tm_get_camera.cpp)
+  ament_target_dependencies(tm_get_img
+    "rclcpp"
+    "sensor_msgs"
+    "std_msgs"
+    "OpenCV")
 install(TARGETS
   listen_robot_status
   send_tm_command
+  tm_get_img
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
