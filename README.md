@@ -20,3 +20,13 @@ You can send command to gazebo by typing
 run tm_driver send_tm_command
 ```
 you can see techman robot run in gazebo environment
+
+#### get eye in hand camera image in Gazebo
+
+If you want to see the image from eye in hand camera, you can type 
+```
+ros2 run tm_driver tm_get_img
+```
+you can see the image from the eye in hand camera
+
+:warning: currently the eye in hand camera positoin may not corrct or the gripper is too big, you will see the some strange object on the image
