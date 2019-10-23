@@ -29,4 +29,3 @@ ros2 run tm_driver tm_get_img
 ```
 you can see the image from the eye in hand camera
 
-:warning: currently the eye in hand camera positoin may not corrct or the gripper is too big, you will see the some strange object on the image
