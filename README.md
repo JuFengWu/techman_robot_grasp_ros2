@@ -17,7 +17,7 @@ you can see techman robot stand in gazebo environment
 #### send command to Gazebo
 You can send command to gazebo by typing
 ```
-run tm_driver send_tm_command
+ros2 run tm_driver send_tm_command
 ```
 you can see techman robot run in gazebo environment
 
