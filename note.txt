@@ -1,1 +1,4 @@
-if server forget send feedback, it won't stop and get success in client
+1. if server forget send feedback, it won't stop and get success in client
+
+2. ros2 run ros1_bridge dynamic_bridge __log_disable_rosout:=true
+it need to add __log_disable_rosout:=true to prevent crash
