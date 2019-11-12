@@ -14,15 +14,25 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rmw REQUIRED)
 find_package(sensor_msgs REQUIRED)
-
+find_package(trajectory_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 
 add_executable(send_joint_command src/send_joint_command.cpp  src/model.cpp  src/command_source.cpp)
 ament_target_dependencies(send_joint_command
   "rclcpp"
   "sensor_msgs")
+
+  add_executable(get_trajectory src/get_trajectory.cpp src/moveit_bridge.cpp)
+  ament_target_dependencies(get_trajectory
+    "rclcpp"
+    "sensor_msgs"
+    "trajectory_msgs"
+    "geometry_msgs") 
+  
 install(TARGETS
   send_joint_command
+  get_trajectory
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
