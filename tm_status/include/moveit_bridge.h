@@ -15,8 +15,7 @@ private:
   geometry_msgs::msg::Pose current_position;
   trajectory_msgs::msg::JointTrajectory trajectory;
 
-  void joint_trajectory_listen_thread(rclcpp::Node::SharedPtr node);
-  void current_position_listen_thread(rclcpp::Node::SharedPtr node);
+  void listen_thread(rclcpp::Node::SharedPtr node);
   void wait_connect_success(std::shared_ptr< rclcpp::Publisher <sensor_msgs::msg::JointState> > publisher);
   void wait_connect_success(std::shared_ptr< rclcpp::Publisher <geometry_msgs::msg::Pose> > publisher);
 public:

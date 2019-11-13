@@ -1,31 +1,39 @@
 #include "../include/moveit_bridge.h"
 
 
-void MoveitBridge::joint_trajectory_listen_thread(rclcpp::Node::SharedPtr node){
+void MoveitBridge::listen_thread(rclcpp::Node::SharedPtr node){
     
-  auto callBack =[this](const trajectory_msgs::msg::JointTrajectory::SharedPtr msg) -> void{
+  auto callBackCurrentPosition =[this](const trajectory_msgs::msg::JointTrajectory::SharedPtr msg) -> void{
     std::cout<<"Hear trajectory"<<std::endl;
     this->trajectory.points = msg->points;
-    this->isGetResult = true;    
-  };
+    std::cout<<"123"<<std::endl;
+    std::cout<<"trajectory.points size is"<<trajectory.points.size()<<std::endl; // error is there
+    for(unsigned int i=0; i<trajectory.points[0].positions.size();i++){
+      std::cout<<"hope no error"<<std::endl;
+    for(unsigned int j=0;i<trajectory.points.size();j++){
+        std::cout<<"J"<<j<<":"<<trajectory.points[j].positions[i]<<",";
+    }
+    std::cout<<std::endl;
+  }
     
-  auto jointTrajectorySub = node->create_subscription<trajectory_msgs::msg::JointTrajectory>("tm_moveit_joint_trajectory", 10,callBack);
+    this->isGetResult = true; 
 
-  rclcpp::spin(node);
-  
-  rclcpp::shutdown();
-}
+  };
 
-void MoveitBridge::current_position_listen_thread(rclcpp::Node::SharedPtr node){
-  auto callBack =[this](const geometry_msgs::msg::Pose::SharedPtr msg) -> void{
+  auto callBackJointTrajector =[this](const geometry_msgs::msg::Pose::SharedPtr msg) -> void{
+    std::cout<<"current position is hear!!"<<std::endl;
     this->current_position = *msg;
   };
-  auto currentPositionSub = node->create_subscription<geometry_msgs::msg::Pose>("tm_moveit_current_position",10,callBack);
+  auto currentPositionSub = node->create_subscription<geometry_msgs::msg::Pose>("tm_moveit_current_position",10,callBackCurrentPosition);
+    
+  auto jointTrajectorySub = node->create_subscription<trajectory_msgs::msg::JointTrajectory>("tm_moveit_joint_trajectory", 10,callBackJointTrajector);
 
   rclcpp::spin(node);
   
   rclcpp::shutdown();
 }
+
+
 
 void MoveitBridge::wait_connect_success(std::shared_ptr< rclcpp::Publisher <geometry_msgs::msg::Pose> > publisher){
   rclcpp::WallRate loop_rate(std::chrono::milliseconds(100));
@@ -49,8 +57,7 @@ MoveitBridge::MoveitBridge(){
   jointStatesChatter = node->create_publisher<sensor_msgs::msg::JointState>("tm_moveit_joint_states", rclcpp::QoS(10));
   jointTargetChatter = node->create_publisher<sensor_msgs::msg::JointState>("tm_moveit_joint_target", rclcpp::QoS(10));
   cartesianChatter = node->create_publisher<geometry_msgs::msg::Pose>("tm_moveit_cartiesan_target", rclcpp::QoS(10));
-  std::thread(&MoveitBridge::joint_trajectory_listen_thread, this,node).detach();
-  std::thread(&MoveitBridge::current_position_listen_thread, this,node).detach();
+  std::thread(&MoveitBridge::listen_thread, this,node).detach();
 
 }
 void MoveitBridge::set_current_joint(std::vector<double> jointPosition){
@@ -73,11 +80,12 @@ trajectory_msgs::msg::JointTrajectory MoveitBridge::get_trajectories(std::vector
   
   jointTargetChatter->publish(msg);
   
-  rclcpp::WallRate loop_rate(std::chrono::milliseconds(200));
+  rclcpp::WallRate loop_rate(std::chrono::milliseconds(10));
   
   while(!isGetResult){
-    loop_rate.sleep();
     std::cout<<"wait result"<<std::endl;
+    loop_rate.sleep();
+    
   }
   isGetResult = false;
   return trajectory;
