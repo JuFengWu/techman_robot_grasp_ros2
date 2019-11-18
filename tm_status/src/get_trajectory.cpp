@@ -12,9 +12,11 @@ int main(int argc, char **argv){
   std::cout<<"e"<<std::endl;
   
   std::cout<<"trajectories are :"<<std::endl;
-  for(unsigned int i=0; i<trajectories.points[0].positions.size();i++){
-    for(unsigned int j=0;i<trajectories.points.size();j++){
-        std::cout<<"J"<<j<<":"<<trajectories.points[j].positions[i]<<",";
+  for(unsigned int i=0; i<trajectories.points.size();i++){
+    std::cout<<"joint "<<i<<" trajectory points are:";
+    for(unsigned int j=0;j<trajectories.points[i].positions.size();j++){
+
+        std::cout<<trajectories.points[i].positions[j]<<",";
     }
     std::cout<<std::endl;
   }
@@ -27,10 +29,11 @@ int main(int argc, char **argv){
   cmdPosition.position.z +=0.5;
 
   trajectories = moveitBrdige->get_trajectories(cmdPosition);
-  std::cout<<"trajectories are :"<<std::endl;
-  for(unsigned int i=0; i<trajectories.points[0].positions.size();i++){
-    for(unsigned int j=0;i<trajectories.points.size();j++){
-        std::cout<<"J"<<j<<":"<<trajectories.points[j].positions[i]<<",";
+  std::cout<<"second trajectories are :"<<std::endl;
+  for(unsigned int i=0; i<trajectories.points.size();i++){
+      std::cout<<"joint "<<i<<" trajectory points are:";
+    for(unsigned int j=0;j<trajectories.points[i].positions.size();j++){ 
+        std::cout<<trajectories.points[i].positions[j]<<",";
     }
     std::cout<<std::endl;
   }

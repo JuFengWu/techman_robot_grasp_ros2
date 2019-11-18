@@ -3,25 +3,21 @@
 
 void MoveitBridge::listen_thread(rclcpp::Node::SharedPtr node){
     
-  auto callBackCurrentPosition =[this](const trajectory_msgs::msg::JointTrajectory::SharedPtr msg) -> void{
-    std::cout<<"Hear trajectory"<<std::endl;
-    this->trajectory.points = msg->points;
-    std::cout<<"123"<<std::endl;
-    std::cout<<"trajectory.points size is"<<trajectory.points.size()<<std::endl; // error is there
-    for(unsigned int i=0; i<trajectory.points[0].positions.size();i++){
-      std::cout<<"hope no error"<<std::endl;
-    for(unsigned int j=0;i<trajectory.points.size();j++){
-        std::cout<<"J"<<j<<":"<<trajectory.points[j].positions[i]<<",";
-    }
-    std::cout<<std::endl;
-  }
+  auto callBackJointTrajector =[this](const trajectory_msgs::msg::JointTrajectory::SharedPtr msg) -> void{
+      std::cout<<"Hear trajectory"<<std::endl;
+      this->trajectory.points = msg->points;
+    
+      std::cout<<"trajectory.points size is"<<trajectory.points.size()<<std::endl;
+    
+      std::cout<<std::endl;
+    
     
     this->isGetResult = true; 
 
   };
 
-  auto callBackJointTrajector =[this](const geometry_msgs::msg::Pose::SharedPtr msg) -> void{
-    std::cout<<"current position is hear!!"<<std::endl;
+  auto callBackCurrentPosition =[this](const geometry_msgs::msg::Pose::SharedPtr msg) -> void{
+    //std::cout<<"current position is hear!!"<<std::endl;
     this->current_position = *msg;
   };
   auto currentPositionSub = node->create_subscription<geometry_msgs::msg::Pose>("tm_moveit_current_position",10,callBackCurrentPosition);
@@ -80,13 +76,20 @@ trajectory_msgs::msg::JointTrajectory MoveitBridge::get_trajectories(std::vector
   
   jointTargetChatter->publish(msg);
   
-  rclcpp::WallRate loop_rate(std::chrono::milliseconds(10));
+  rclcpp::WallRate loop_rate(std::chrono::milliseconds(500));
+
+  int counter =0;
   
   while(!isGetResult){
     std::cout<<"wait result"<<std::endl;
     loop_rate.sleep();
-    
+    counter++;
+    if(counter>2){
+      jointTargetChatter->publish(msg);
+    }
   }
+  std::cout<<"jointTargetChatter.get_subscription_count is "<<jointTargetChatter->get_subscription_count()<<std::endl;
+  
   isGetResult = false;
   return trajectory;
 }
