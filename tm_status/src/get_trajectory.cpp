@@ -4,6 +4,7 @@ int main(int argc, char **argv){
   rclcpp::init(argc, argv);
   std::unique_ptr<MoveitBridge> moveitBrdige = std::make_unique<MoveitBridge>();
 
+ 
   std::vector<double> initialJointPosition{0.0,0.0,90.0,0.0,90.0,0.0};
   moveitBrdige->set_current_joint(initialJointPosition);
   
@@ -21,7 +22,7 @@ int main(int argc, char **argv){
     std::cout<<std::endl;
   }
 
-  auto currentPosition = moveitBrdige->get_current_position();
+ auto currentPosition = moveitBrdige->get_current_position();
   
   geometry_msgs::msg::Pose cmdPosition = currentPosition;
   cmdPosition.position.x +=0.5;

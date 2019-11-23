@@ -14,12 +14,14 @@ private:
   bool isGetResult;
   geometry_msgs::msg::Pose current_position;
   trajectory_msgs::msg::JointTrajectory trajectory;
+  bool isListen;
 
   void listen_thread(rclcpp::Node::SharedPtr node);
   void wait_connect_success(std::shared_ptr< rclcpp::Publisher <sensor_msgs::msg::JointState> > publisher);
   void wait_connect_success(std::shared_ptr< rclcpp::Publisher <geometry_msgs::msg::Pose> > publisher);
 public:
   MoveitBridge();
+  ~MoveitBridge();
   void set_current_joint(std::vector<double> jointPosition);
   trajectory_msgs::msg::JointTrajectory get_trajectories(std::vector<double> jointTarget);
   trajectory_msgs::msg::JointTrajectory get_trajectories(geometry_msgs::msg::Pose eeTarget);
