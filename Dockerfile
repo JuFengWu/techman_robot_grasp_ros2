@@ -67,3 +67,14 @@ RUN echo "y"| apt-get dist-upgrade
 RUN echo "y"| apt-get install ros-melodic-catkin python-catkin-tools
 RUN echo "y"| apt-get install ros-melodic-moveit
 RUN echo "y"| apt-get install ros-melodic-moveit-visual-tools
+
+#install techman robot ros2
+RUN cd /root && mkdir -p tm_ros2_ws/src
+ADD robotiq_2f_140_gripper_visualization  /root/tm_ros2_ws/src/robotiq_2f_140_gripper_visualization
+ADD techman_robot_utility_scripts  /root/tm_ros2_ws/src/techman_robot_utility_scripts
+ADD tm_driver  /root/tm_ros2_ws/src/tm_driver
+ADD tm_gazebo_plugin  /root/tm_ros2_ws/src/tm_gazebo_plugin
+ADD tm_grasp_description  /root/tm_ros2_ws/src/tm_grasp_description
+ADD tm_launch  /root/tm_ros2_ws/src/tm_launch
+ADD tm_msgs  /root/tm_ros2_ws/src/tm_msgs
+ADD tm_status  /root/tm_ros2_ws/src/tm_status
