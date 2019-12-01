@@ -2,14 +2,55 @@
 This is a ros2 example by using techman robot and robotiq.
 
 ### Install 
+
+There are two ways to install and build this package. The first in using Docker and the other install the environment directly on your own computer.
+I suggest to use Docker to create environment and package.
+
 ---
-#### Create a ROS 2.0 workspace
-Create the workspace and download source files
+#### Use Docker file to create environment and package
+
+The easiest way to get started is using Docker. The Docker install steps are [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
+
+1. Install Docker.
+2. Change to superuser user by type ``sudo -i`` 
+3. Create the workspace and download source files
+
 ```
 mkdir -p ~/jufeng_tm_ws/src
+cd ~/jufeng_tm_ws/src
 git clone https://github.com/JuFengWu/techman_robot_grasp_ros2.git
 ```
-Build this project and source it
+4. Build docker images by type 
+```
+cd ~/jufeng_tm_ws/src/techman_robot_grasp_ros2
+docker build -t techman_robot_grasp_ros2:ver1 .
+```
+and wait for a moment.
+
+5. Type ``docker run -it --rm -p 6080:80 techman_robot_grasp_ros2:ver1``
+6. Open a broswer and  connect to [localhost:6080](http://localhost:6080), you can see the desktop on the broswer(which is remote desktop) with this package environment and this package.
+7. Build the project on the remote desktop by opening the remote desktop terminal and type
+```
+cd ./tm_ros2_ws
+colcon build
+```  
+
+#### Install it without Docker 
+This package use the following dependent tools:
+1. ROS2 Dashing
+2. ROS1 Melodic
+3. Gazebo 9
+4. Moveit ROS1 Melodic version 
+
+After install those dependent tools and you can start to build this package by following steps:
+
+1. Create the workspace and download source files
+```
+mkdir -p ~/jufeng_tm_ws/src
+cd ~/jufeng_tm_ws/src
+git clone https://github.com/JuFengWu/techman_robot_grasp_ros2.git
+```
+2. Build this project and source it
 ```
 source /opt/ros/dashing/setup.bash
 cd ~/jufeng_tm_ws
