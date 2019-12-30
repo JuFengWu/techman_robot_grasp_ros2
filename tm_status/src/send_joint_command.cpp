@@ -22,9 +22,10 @@ ModelInterface* get_modle(std::string modleSting){
   throw "get_modle string error!";
 }
 
-CommandSourceInterface* get_command(std::string commandString){
+std::unique_ptr<CommandSourceInterface> get_command(std::string commandString){
   if(commandString == "testMoveCommand"){
-    return new TestMoveCommand();
+    //return new TestMoveCommand();
+    return std::make_unique<TestMoveCommand>();
   }
   throw "get_command string error!";
 }
@@ -61,8 +62,10 @@ int main(int argc, char * argv[]){
 
     set_model(std::get<0>(parameters),msg);
 
-    CommandSourceInterface* command = get_command(std::get<1>(parameters));
-
+    //CommandSourceInterface* command = get_command(std::get<1>(parameters));
+    
+    std::unique_ptr<CommandSourceInterface> command = get_command(std::get<1>(parameters));
+    
     rclcpp::Clock::SharedPtr clock = set_time(node);
 
     rclcpp::WallRate loop_rate(command->get_loop_time());
